@@ -167,7 +167,7 @@ namespace GridLock
             public static List<Block> blocks = new List<Block>();
             public static List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
 
-
+            public static Block selectedBlock = null;
         }
         public class Block
         {
