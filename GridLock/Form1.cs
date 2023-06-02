@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -22,28 +24,32 @@ namespace GridLock
             ReadFile();
             generateGridPictureBoxes();
             InitiateMap();
-            //blocks[0].Move(0, 4, blocks);
+            
             KeyDown += new KeyEventHandler(Form1_KeyDown);
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Right)
+            if(Global.selectedBlock != null)
             {
-                label1.Text = "righty";
+                if (e.KeyCode == Keys.Right)
+                {
+                    Global.selectedBlock.Move(0,1);
+                }
+                else if (e.KeyCode == Keys.Left)
+                {
+                    Global.selectedBlock.Move(0, -1);
+                }
+                else if (e.KeyCode == Keys.Up)
+                {
+                    Global.selectedBlock.Move(-1, 0);
+                }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    Global.selectedBlock.Move(1, 0);
+                }
             }
-            else if (e.KeyCode == Keys.Left)
-            {
-                label1.Text = "lefty";
-            }
-            else if (e.KeyCode == Keys.Up)
-            {
-                label1.Text = "uppy";
-            }
-            else if (e.KeyCode == Keys.Down)
-            {
-                label1.Text = "downy";
-            }
+
         }
         void ReadFile()
         {
@@ -88,10 +94,8 @@ namespace GridLock
             reader.Close();
             for (int i = 0; i < Global.gameBoard.Count; i++)
             {
-                Console.WriteLine("");
                 for (int ii = 0; ii < Global.gameBoard[i].Count; ii++)
                 {
-                    Console.Write(Global.gameBoard[i][ii] + " ");
                 }
             }
         }
@@ -120,7 +124,7 @@ namespace GridLock
                         else if (colourCode == "pu") colour = Color.Purple;
                         else if (colourCode == "br") colour = Color.Brown;
                         Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1])));
-                        Global.blocks[Global.blocks.Count-1].drawBlock(Global.pictureBoxes);
+                        Global.blocks[Global.blocks.Count-1].drawBlock();
 
                     }
                 }
@@ -138,19 +142,59 @@ namespace GridLock
                     var item = Global.pictureBoxes[y][x];
                     item.Width = Global.blockPixelLength -1;
                     item.Height = Global.blockPixelLength -1;
-                    item.BackColor = Color.LightGray;
+                    item.BackColor = Global.gridBackColor;
                     item.Location = new Point(x * Global.blockPixelLength,y * Global.blockPixelLength);
+                    item.Click += new EventHandler(NewPictureBox_Click);
                     this.Controls.Add(item);
                 }
             }
             
 
                 
-            }
+        }
 
-        void clearBackgroundBlocks()
+        private void NewPictureBox_Click(object sender, EventArgs e)
         {
+            PictureBox pictureBox = (PictureBox) sender;
+            Global.selectedBlock = findBlockWithCords(pictureBox.Location.Y / Global.blockPixelLength, pictureBox.Location.X / Global.blockPixelLength);
+            Console.WriteLine(Global.selectedBlock);
+            Console.WriteLine("hi");
+        }
 
+        private Block findBlockWithCords(int y, int x)
+        {
+            foreach (var thisBlock in Global.blocks)
+            {
+                foreach (var thisCord in thisBlock.cords)
+                {
+                    if (thisCord[0] == y && thisCord[1] == x)
+                    {
+                        return thisBlock;
+                    }
+                }
+            }
+            return null;
+        }
+
+        static void clearBackgroundBlocks()
+        {
+            for (int y = 0; y < Global.blocksDown; y++)
+            {
+                for (int x = 0; x < Global.blocksAcross; x++)
+                {
+                    var item = Global.pictureBoxes[y][x];
+                    item.BackColor = Global.gridBackColor;
+                }
+            }
+        }
+        
+        private static void renderTick()
+        {
+            clearBackgroundBlocks();
+            foreach (var item in Global.blocks)
+            {
+                item.drawBlock();
+            }
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -168,6 +212,7 @@ namespace GridLock
             public static List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
 
             public static Block selectedBlock = null;
+            public static Color gridBackColor = Color.LightGray;
         }
         public class Block
         {
@@ -271,19 +316,16 @@ namespace GridLock
                         }
                     }
                 }
-
-
-
-
+                renderTick();
 
             }
 
-            public void drawBlock(List<List<PictureBox>> pictureBoxes)
+            public void drawBlock()
             {
                 int i = 0;
                 foreach (var item in this.cords)
                 {
-                    pictureBoxes[this.cords[i][0]][this.cords[i][1]].BackColor = this.colour;
+                    Global.pictureBoxes[this.cords[i][0]][this.cords[i][1]].BackColor = this.colour;
                     i++;
                 }
             }
