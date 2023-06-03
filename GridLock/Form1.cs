@@ -20,6 +20,7 @@ namespace GridLock
 
         public Form1()
         {
+
             InitializeComponent();
             ReadFile();
             generateGridPictureBoxes();
@@ -32,19 +33,19 @@ namespace GridLock
         {
             if(Global.selectedBlock != null)
             {
-                if (e.KeyCode == Keys.Right)
+                if (e.KeyCode == Keys.Right && Global.selectedBlock.movement != "V")
                 {
                     Global.selectedBlock.Move(0,1);
                 }
-                else if (e.KeyCode == Keys.Left)
+                else if (e.KeyCode == Keys.Left && Global.selectedBlock.movement != "V")
                 {
                     Global.selectedBlock.Move(0, -1);
                 }
-                else if (e.KeyCode == Keys.Up)
+                else if (e.KeyCode == Keys.Up && Global.selectedBlock.movement != "H")
                 {
                     Global.selectedBlock.Move(-1, 0);
                 }
-                else if (e.KeyCode == Keys.Down)
+                else if (e.KeyCode == Keys.Down && Global.selectedBlock.movement != "H")
                 {
                     Global.selectedBlock.Move(1, 0);
                 }
@@ -65,7 +66,7 @@ namespace GridLock
             while (endRead == false)
             {
                 Global.gameBoard.Add(new List<string>());
-                while (value != "\n" && endRead == false)
+                while (value != "\r\n" && endRead == false)
                 {
                     readCharacter = reader.Read();
 
@@ -96,12 +97,14 @@ namespace GridLock
             {
                 for (int ii = 0; ii < Global.gameBoard[i].Count; ii++)
                 {
+                    Console.WriteLine(Global.gameBoard[i][ii]);
                 }
             }
         }
 
         void InitiateMap()
         {
+            
             for (int y = 0; y < Global.gameBoard.Count - 1; y++)
             {
                 for (int x = 0; x < Global.gameBoard[x].Count - 1; x++)
@@ -113,6 +116,7 @@ namespace GridLock
                         string colourCode = $"{item[0]}{item[1]}";
                         Color colour = Color.LightGray;
                         string dimensions = $"{item[2]}{item[3]}";
+                        string typeOfBlock = $"{item[4]}";
 
                         if (colourCode == "r_") colour = Color.Red;
                         else if (colourCode == "y_") colour = Color.Yellow;
@@ -123,7 +127,7 @@ namespace GridLock
                         else if (colourCode == "o_") colour = Color.Orange;
                         else if (colourCode == "pu") colour = Color.Purple;
                         else if (colourCode == "br") colour = Color.Brown;
-                        Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1])));
+                        Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
                         Global.blocks[Global.blocks.Count-1].drawBlock();
 
                     }
@@ -226,14 +230,15 @@ namespace GridLock
             public int yLength { get; set; }
             public int xLength { get; set; }
 
+            public string movement { get; set; }
 
-            public Block(Color colour, int yCord, int xCord, int yLength, int xLength)
+            public Block(Color colour, int yCord, int xCord, int yLength, int xLength, string movement)
             {
 
                 this.colour = colour;
                 this.cords = new List<List<int>>();
                 this.InitialiseCords(yCord, xCord, yLength, xLength);
-
+                this.movement = movement;
             }
 
 
