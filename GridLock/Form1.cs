@@ -7,10 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GridLock.Form1;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace GridLock
 {
@@ -20,13 +23,24 @@ namespace GridLock
 
         public Form1()
         {
-
+            Global.form1Ref = this;
             InitializeComponent();
             ReadFile();
             generateGridPictureBoxes();
             InitiateMap();
-            
+
+            Load += Form1_Load1;
             KeyDown += new KeyEventHandler(Form1_KeyDown);
+
+            //constructor to execute main functions
+            
+        }
+
+        private void Form1_Load1(object sender, EventArgs e)
+        {
+
+
+            // activates code once all controls have loaded
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -54,7 +68,17 @@ namespace GridLock
         }
         void ReadFile()
         {
+            /* code for file reading:
+             first two digits are the colour code
+                if the colour code is FF, it is the finish line
+             3rd digit is height
+             4th digit is length
+             5th digit is movement of block type
+                V = vertical
+                H = horizontal
+                A = all
 
+             */
             int x = 0;
             int y = 0;
             string value = "";
@@ -107,28 +131,43 @@ namespace GridLock
             
             for (int y = 0; y < Global.gameBoard.Count - 1; y++)
             {
-                for (int x = 0; x < Global.gameBoard[x].Count - 1; x++)
+                for (int x = 0; x <= Global.gameBoard[y].Count-1; x++)
                 {
                     var item = Global.gameBoard[y][x];
 
+                    if (x == 5 && y == 2)
+                    {
+                        Console.WriteLine(Global.gameBoard[y]);
+                    }
+
                     if (item != " " && item != null)
                     {
+                        
                         string colourCode = $"{item[0]}{item[1]}";
                         Color colour = Color.LightGray;
                         string dimensions = $"{item[2]}{item[3]}";
                         string typeOfBlock = $"{item[4]}";
+                        Console.WriteLine(item);
+                        if (colourCode != "FF")
+                        {
+                            if (colourCode == "r_") colour = Color.Red;
+                            else if (colourCode == "y_") colour = Color.Yellow;
+                            else if (colourCode == "g_") colour = Color.Green;
+                            else if (colourCode == "gy") colour = Color.Gray;
+                            else if (colourCode == "b_") colour = Color.Black;
+                            else if (colourCode == "p_") colour = Color.Pink;
+                            else if (colourCode == "o_") colour = Color.Orange;
+                            else if (colourCode == "pu") colour = Color.Purple;
+                            else if (colourCode == "br") colour = Color.Brown;
+                            Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
+                            Global.blocks[Global.blocks.Count - 1].drawBlock();
+                        } else
+                        {
+                            
+                            Global.finishblock = new FinishBlock(y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]));
+                        }
 
-                        if (colourCode == "r_") colour = Color.Red;
-                        else if (colourCode == "y_") colour = Color.Yellow;
-                        else if (colourCode == "g_") colour = Color.Green;
-                        else if (colourCode == "gy") colour = Color.Gray;
-                        else if (colourCode == "b_") colour = Color.Black;
-                        else if (colourCode == "p_") colour = Color.Pink;
-                        else if (colourCode == "o_") colour = Color.Orange;
-                        else if (colourCode == "pu") colour = Color.Purple;
-                        else if (colourCode == "br") colour = Color.Brown;
-                        Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
-                        Global.blocks[Global.blocks.Count-1].drawBlock();
+                        
 
                     }
                 }
@@ -144,17 +183,15 @@ namespace GridLock
                 {
                     Global.pictureBoxes[y].Add(new PictureBox());
                     var item = Global.pictureBoxes[y][x];
-                    item.Width = Global.blockPixelLength -1;
-                    item.Height = Global.blockPixelLength -1;
+                    item.Width = Global.blockPixelLength - Global.pictureBoxGap;
+                    item.Height = Global.blockPixelLength - Global.pictureBoxGap;
                     item.BackColor = Global.gridBackColor;
                     item.Location = new Point(x * Global.blockPixelLength,y * Global.blockPixelLength);
                     item.Click += new EventHandler(NewPictureBox_Click);
                     this.Controls.Add(item);
                 }
             }
-            
 
-                
         }
 
         private void NewPictureBox_Click(object sender, EventArgs e)
@@ -191,6 +228,8 @@ namespace GridLock
                 }
             }
         }
+
+
         
         private static void renderTick()
         {
@@ -213,10 +252,15 @@ namespace GridLock
 
             public static List<List<string>> gameBoard = new List<List<string>>();
             public static List<Block> blocks = new List<Block>();
+            public static FinishBlock finishblock = null;
             public static List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
 
             public static Block selectedBlock = null;
             public static Color gridBackColor = Color.LightGray;
+            public static Color finishColor = Color.LimeGreen;
+            public static int pictureBoxGap = 2;
+
+            public static Form1 form1Ref = null;
         }
         public class Block
         {
@@ -335,8 +379,51 @@ namespace GridLock
                 }
             }
         }
+
+        public class FinishBlock
+        {
+            public int y { get; set; }
+            public int x { get; set; }
+
+            public int height { get; set; }
+            public int length { get; set; }
+
+
+            public FinishBlock(int y, int x, int height, int length)
+            {
+                this.height = height;
+                this.length = length;
+                this.y = y;
+                this.x = x-length+1;
+                drawFinish();
+
+            }
+
+            public void drawFinish()
+            {
+                
+                    PictureBox item = new PictureBox();
+                    item.Width = Global.blockPixelLength*this.length + Global.pictureBoxGap;
+                    item.Height = Global.blockPixelLength*this.height + Global.pictureBoxGap;
+                    item.BackColor = Global.finishColor;
+                    item.Location = new Point(this.x * Global.blockPixelLength - Global.pictureBoxGap, this.y * Global.blockPixelLength - Global.pictureBoxGap);
+                    Global.form1Ref.Controls.Add(item);
+
+
+
+            }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            Graphics gr = Global.pictureBoxes[0][0].CreateGraphics();
+            Pen mypen = new Pen(Brushes.Black, 3);
+            gr.DrawRectangle(mypen, 0, 0, 50, 50);
+        }
+
     }
 
 
 }
+
 
