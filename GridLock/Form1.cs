@@ -34,7 +34,7 @@ namespace GridLock
             KeyDown += new KeyEventHandler(Form1_KeyDown);
 
             //constructor to execute main functions
-            
+
         }
 
         private void Form1_Load1(object sender, EventArgs e)
@@ -43,16 +43,17 @@ namespace GridLock
             // activates code once all controls have loaded
 
             this.KeyPreview = true;
+            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
 
             initiateLevelsComboBox();
 
-            
+
 
         }
 
         private void initiateLevelsComboBox()
         {
-            DirectoryInfo d = new DirectoryInfo(@"csvLevels/"); 
+            DirectoryInfo d = new DirectoryInfo(@"csvLevels/");
 
             FileInfo[] Files = d.GetFiles("*.csv"); //Getting csv filesnames
             string str = "";
@@ -63,18 +64,32 @@ namespace GridLock
 
             }
 
-
-
-
+            comboBox1.SelectedIndex = 0;
+            // gets csv filenames and inserts them into combobox
         }
+
+        private void loadLevel()
+        {
+            int selectedIndex = comboBox1.SelectedIndex;
+            Object selectedItem = comboBox1.SelectedItem;
+
+            clearBackgroundBlocks();
+            Global.currentLevelFilePath = @"csvLevels/"+ selectedItem.ToString();
+            ReadFile();
+            InitiateMap();
+            Global.selectedBlock = null;
+            // Get selected level from combobox and store it in the file path, then reset all variables and play all main file reading and level setup functions
+        }
+
+
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if(Global.selectedBlock != null)
+            if (Global.selectedBlock != null)
             {
                 if (e.KeyCode == Keys.Right && Global.selectedBlock.movement != "V")
                 {
-                    Global.selectedBlock.Move(0,1);
+                    Global.selectedBlock.Move(0, 1);
                 }
                 else if (e.KeyCode == Keys.Left && Global.selectedBlock.movement != "V")
                 {
@@ -104,12 +119,13 @@ namespace GridLock
                 A = all
 
              */
+            Global.gameBoard.Clear();
             int x = 0;
             int y = 0;
             string value = "";
             bool endRead = false;
-            string path = @"csvLevels/readthis.csv";
-           StreamReader reader = new StreamReader(path);
+            string path = Global.currentLevelFilePath;
+            StreamReader reader = new StreamReader(path);
             int readCharacter = 0;
 
             while (endRead == false)
@@ -153,10 +169,10 @@ namespace GridLock
 
         void InitiateMap()
         {
-            
+            Global.blocks.Clear();
             for (int y = 0; y < Global.gameBoard.Count - 1; y++)
             {
-                for (int x = 0; x <= Global.gameBoard[y].Count-1; x++)
+                for (int x = 0; x <= Global.gameBoard[y].Count - 1; x++)
                 {
                     var item = Global.gameBoard[y][x];
 
@@ -167,7 +183,7 @@ namespace GridLock
 
                     if (item != " " && item != null)
                     {
-                        
+
                         string colourCode = $"{item[0]}{item[1]}";
                         Color colour = Color.LightGray;
                         string dimensions = $"{item[2]}{item[3]}";
@@ -186,13 +202,14 @@ namespace GridLock
                             else if (colourCode == "br") colour = Color.Brown;
                             Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
                             Global.blocks[Global.blocks.Count - 1].drawBlock();
-                        } else
+                        }
+                        else
                         {
-                            
+
                             Global.finishblock = new FinishBlock(y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]));
                         }
 
-                        
+
 
                     }
                 }
@@ -201,6 +218,7 @@ namespace GridLock
 
         void generateGridPictureBoxes()
         {
+            Global.pictureBoxes.Clear();
             for (int y = 0; y < Global.blocksDown; y++)
             {
                 Global.pictureBoxes.Add(new List<PictureBox>());
@@ -211,7 +229,7 @@ namespace GridLock
                     item.Width = Global.blockPixelLength - Global.pictureBoxGap;
                     item.Height = Global.blockPixelLength - Global.pictureBoxGap;
                     item.BackColor = Global.gridBackColor;
-                    item.Location = new Point(x * Global.blockPixelLength,y * Global.blockPixelLength);
+                    item.Location = new Point(x * Global.blockPixelLength, y * Global.blockPixelLength);
                     item.Click += new EventHandler(NewPictureBox_Click);
                     this.Controls.Add(item);
                 }
@@ -221,7 +239,7 @@ namespace GridLock
 
         private void NewPictureBox_Click(object sender, EventArgs e)
         {
-            PictureBox pictureBox = (PictureBox) sender;
+            PictureBox pictureBox = (PictureBox)sender;
             Global.selectedBlock = findBlockWithCords(pictureBox.Location.Y / Global.blockPixelLength, pictureBox.Location.X / Global.blockPixelLength);
             Console.WriteLine(Global.selectedBlock);
             Console.WriteLine("hi");
@@ -255,7 +273,7 @@ namespace GridLock
         }
 
 
-        
+
         private static void renderTick()
         {
             clearBackgroundBlocks();
@@ -286,6 +304,7 @@ namespace GridLock
             public static int pictureBoxGap = 2;
 
             public static Form1 form1Ref = null;
+            public static string currentLevelFilePath = @"csvLevels/readthis.csv";
         }
         public class Block
         {
@@ -321,8 +340,8 @@ namespace GridLock
                     for (int x = 0; x < xL; x++)
                     {
                         this.cords.Add(new List<int>());
-                        this.cords[this.cords.Count-1].Add(yInitialCord + y);
-                        this.cords[this.cords.Count-1].Add(xInitialCord + x);
+                        this.cords[this.cords.Count - 1].Add(yInitialCord + y);
+                        this.cords[this.cords.Count - 1].Add(xInitialCord + x);
                     }
                 }
 
@@ -419,20 +438,20 @@ namespace GridLock
                 this.height = height;
                 this.length = length;
                 this.y = y;
-                this.x = x-length+1;
+                this.x = x - length + 1;
                 drawFinish();
 
             }
 
             public void drawFinish()
             {
-                
-                    PictureBox item = new PictureBox();
-                    item.Width = Global.blockPixelLength*this.length + Global.pictureBoxGap;
-                    item.Height = Global.blockPixelLength*this.height + Global.pictureBoxGap;
-                    item.BackColor = Global.finishColor;
-                    item.Location = new Point(this.x * Global.blockPixelLength - Global.pictureBoxGap, this.y * Global.blockPixelLength - Global.pictureBoxGap);
-                    Global.form1Ref.Controls.Add(item);
+
+                PictureBox item = new PictureBox();
+                item.Width = Global.blockPixelLength * this.length + Global.pictureBoxGap;
+                item.Height = Global.blockPixelLength * this.height + Global.pictureBoxGap;
+                item.BackColor = Global.finishColor;
+                item.Location = new Point(this.x * Global.blockPixelLength - Global.pictureBoxGap, this.y * Global.blockPixelLength - Global.pictureBoxGap);
+                Global.form1Ref.Controls.Add(item);
 
 
 
@@ -450,9 +469,14 @@ namespace GridLock
         {
 
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            loadLevel();
+
+        }
+
     }
-
-
 }
 
 
