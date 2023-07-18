@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,8 +40,32 @@ namespace GridLock
         private void Form1_Load1(object sender, EventArgs e)
         {
 
-
             // activates code once all controls have loaded
+
+            this.KeyPreview = true;
+
+            initiateLevelsComboBox();
+
+            
+
+        }
+
+        private void initiateLevelsComboBox()
+        {
+            DirectoryInfo d = new DirectoryInfo(@"csvLevels/"); 
+
+            FileInfo[] Files = d.GetFiles("*.csv"); //Getting csv filesnames
+            string str = "";
+
+            foreach (FileInfo file in Files)
+            {
+                comboBox1.Items.AddRange(new object[] { $"{file.Name}" });
+
+            }
+
+
+
+
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -83,8 +108,8 @@ namespace GridLock
             int y = 0;
             string value = "";
             bool endRead = false;
-            string path = @"readthis.csv";
-            StreamReader reader = new StreamReader(path);
+            string path = @"csvLevels/readthis.csv";
+           StreamReader reader = new StreamReader(path);
             int readCharacter = 0;
 
             while (endRead == false)
@@ -421,6 +446,10 @@ namespace GridLock
             gr.DrawRectangle(mypen, 0, 0, 50, 50);
         }
 
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 
 
