@@ -33,6 +33,7 @@ namespace GridLock
             Load += Form1_Load1;
             KeyDown += new KeyEventHandler(Form1_KeyDown);
 
+            convertMapTo2DArray();
             //constructor to execute main functions
 
         }
@@ -162,24 +163,56 @@ namespace GridLock
             {
                 for (int ii = 0; ii < Global.gameBoard[i].Count; ii++)
                 {
-                    Console.WriteLine(Global.gameBoard[i][ii]);
                 }
             }
         }
 
-        void InitiateMap()
+        private void convertMapTo2DArray()
+        {
+            for (int y = 0; y < Constants.blocksDown; y++) // Create dummy map for list insertions
+            {
+                Global.live2DGameBoard.Add(new List<string>());
+
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    Global.live2DGameBoard[y].Add(" ");
+
+                }
+            }
+
+            for (int y = 0; y < Constants.blocksDown; y++) // Insert blocks now
+            {
+
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    if (Global.gameBoard[y][x] != " " && $"{Global.gameBoard[y][x][0]}{Global.gameBoard[y][x][1]}" != "FF")
+                    {
+                        int yL = Convert.ToInt32(Global.gameBoard[y][x][2].ToString());
+                        int xL = Convert.ToInt32(Global.gameBoard[y][x][3].ToString());
+                        for (int yCount = 0; yCount < yL; yCount++)
+                        {
+                            for (int xCount = 0; xCount < xL; xCount++)
+                            {
+                                Global.live2DGameBoard[y+yCount][x+xCount] = $"{Global.gameBoard[y][x][0]}{Global.gameBoard[y][x][1]}";
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        private void InitiateMap()
         {
             Global.blocks.Clear();
-            for (int y = 0; y < Global.gameBoard.Count - 1; y++)
+            for (int y = 0; y < Global.gameBoard.Count; y++)
             {
-                for (int x = 0; x <= Global.gameBoard[y].Count - 1; x++)
+                for (int x = 0; x < Global.gameBoard[y].Count; x++)
                 {
                     var item = Global.gameBoard[y][x];
 
-                    if (x == 5 && y == 2)
-                    {
-                        Console.WriteLine(Global.gameBoard[y]);
-                    }
+                    Console.WriteLine(item);
 
                     if (item != " " && item != null)
                     {
@@ -188,7 +221,8 @@ namespace GridLock
                         Color colour = Color.LightGray;
                         string dimensions = $"{item[2]}{item[3]}";
                         string typeOfBlock = $"{item[4]}";
-                        Console.WriteLine(item);
+
+
                         if (colourCode != "FF")
                         {
                             if (colourCode == "r_") colour = Color.Red;
@@ -200,7 +234,7 @@ namespace GridLock
                             else if (colourCode == "o_") colour = Color.Orange;
                             else if (colourCode == "pu") colour = Color.Purple;
                             else if (colourCode == "br") colour = Color.Brown;
-                            Global.blocks.Add(new Block(colour, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
+                            Global.blocks.Add(new Block(colour, colourCode, y, x, (int)Char.GetNumericValue(dimensions[0]), (int)Char.GetNumericValue(dimensions[1]), typeOfBlock));
                             Global.blocks[Global.blocks.Count - 1].drawBlock();
                         }
                         else
@@ -216,20 +250,20 @@ namespace GridLock
             }
         }
 
-        void generateGridPictureBoxes()
+        private void generateGridPictureBoxes()
         {
             Global.pictureBoxes.Clear();
-            for (int y = 0; y < Global.blocksDown; y++)
+            for (int y = 0; y < Constants.blocksDown; y++)
             {
                 Global.pictureBoxes.Add(new List<PictureBox>());
-                for (int x = 0; x < Global.blocksAcross; x++)
+                for (int x = 0; x < Constants.blocksAcross; x++)
                 {
                     Global.pictureBoxes[y].Add(new PictureBox());
                     var item = Global.pictureBoxes[y][x];
-                    item.Width = Global.blockPixelLength - Global.pictureBoxGap;
-                    item.Height = Global.blockPixelLength - Global.pictureBoxGap;
-                    item.BackColor = Global.gridBackColor;
-                    item.Location = new Point(x * Global.blockPixelLength, y * Global.blockPixelLength);
+                    item.Width = Constants.blockPixelLength - Constants.pictureBoxGap;
+                    item.Height = Constants.blockPixelLength - Constants.pictureBoxGap;
+                    item.BackColor = Constants.gridBackColor;
+                    item.Location = new Point(x * Constants.blockPixelLength, y * Constants.blockPixelLength);
                     item.Click += new EventHandler(NewPictureBox_Click);
                     this.Controls.Add(item);
                 }
@@ -240,9 +274,14 @@ namespace GridLock
         private void NewPictureBox_Click(object sender, EventArgs e)
         {
             PictureBox pictureBox = (PictureBox)sender;
-            Global.selectedBlock = findBlockWithCords(pictureBox.Location.Y / Global.blockPixelLength, pictureBox.Location.X / Global.blockPixelLength);
-            Console.WriteLine(Global.selectedBlock);
-            Console.WriteLine("hi");
+            Global.selectedBlock = findBlockWithCords(pictureBox.Location.Y / Constants.blockPixelLength, pictureBox.Location.X / Constants.blockPixelLength);
+            if(Global.selectedBlock != null)
+            {
+                Global.form1Ref.pictureBox1.BackColor = Global.selectedBlock.colour;
+
+            }
+
+            //Gets picturebox cordinates and finds the corresponding block with the mouse cordinates, then change the selected block icon colour
         }
 
         private Block findBlockWithCords(int y, int x)
@@ -262,12 +301,12 @@ namespace GridLock
 
         static void clearBackgroundBlocks()
         {
-            for (int y = 0; y < Global.blocksDown; y++)
+            for (int y = 0; y < Constants.blocksDown; y++)
             {
-                for (int x = 0; x < Global.blocksAcross; x++)
+                for (int x = 0; x < Constants.blocksAcross; x++)
                 {
                     var item = Global.pictureBoxes[y][x];
-                    item.BackColor = Global.gridBackColor;
+                    item.BackColor = Constants.gridBackColor;
                 }
             }
         }
@@ -281,30 +320,65 @@ namespace GridLock
             {
                 item.drawBlock();
             }
+
+            for (int y = 0; y < Constants.blocksDown; y++)
+            {
+                Console.WriteLine("");
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    Console.Write(Global.live2DGameBoard[y][x]);
+                    if(Global.live2DGameBoard[y][x] == " ")
+                    {
+                        Console.Write(" ");
+
+                    }
+                }
+            }
         }
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
 
+        private void levelSolver()
+        {
+            /* AI method
+             1. Create all board combinations from moving the green block to every possible square.
+             2. Create all possible board combinations from moving other blocks
+             3. Check if one of those boards has a solved combination
+             4. If not, create all possible board combinations from the pool of existing boards
+             5. Repeat until one of the boards has a solved combination
+            */
+
+            
+            List<List<List<string>>> boards = new List<List<List<string>>>(); // the first section of this variable is the generation the board exists in
+
+            // 1st step - create all board combinations from moving the green block to every possible square
+            //boards.Add(new List<<List<string>>());
+            for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
+            {
+                boards[0].Add(new List<string>());
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    boards[0][y].Add(Global.live2DGameBoard[y][x]);
+                }
+            }
+        }
+
         class Global
         {
-            public static int blocksAcross = 7;
-            public static int blocksDown = 7;
-            public static int blockPixelLength = 50;
+            
 
             public static List<List<string>> gameBoard = new List<List<string>>();
+            public static List<List<string>> live2DGameBoard = new List<List<string>>();
             public static List<Block> blocks = new List<Block>();
             public static FinishBlock finishblock = null;
             public static List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
 
             public static Block selectedBlock = null;
-            public static Color gridBackColor = Color.LightGray;
-            public static Color finishColor = Color.LimeGreen;
-            public static int pictureBoxGap = 2;
 
             public static Form1 form1Ref = null;
-            public static string currentLevelFilePath = @"csvLevels/readthis.csv";
+            public static string currentLevelFilePath = @"csvLevels/aiTester.csv";
         }
         public class Block
         {
@@ -314,17 +388,19 @@ namespace GridLock
             private int x;
 
             public Color colour { get; set; }
+            public string colourCode { get; set; }
             public List<List<int>> cords { get; set; }
             public int yLength { get; set; }
             public int xLength { get; set; }
 
             public string movement { get; set; }
 
-            public Block(Color colour, int yCord, int xCord, int yLength, int xLength, string movement)
+            public Block(Color colour, string colourCode, int yCord, int xCord, int yLength, int xLength, string movement)
             {
 
                 this.colour = colour;
                 this.cords = new List<List<int>>();
+                this.colourCode = colourCode;
                 this.InitialiseCords(yCord, xCord, yLength, xLength);
                 this.movement = movement;
             }
@@ -375,8 +451,17 @@ namespace GridLock
                     {
                         for (int i = 0; i < this.cords.Count; i++)
                         {
+                            Global.live2DGameBoard[this.cords[i][0]][this.cords[i][1]] = " ";
+
+                        }  // erase blocks on the live gameboard
+
+                        for (int i = 0; i < this.cords.Count; i++)
+                        {
                             this.cords[i][0] += yDirection;
-                        }
+
+                            Global.live2DGameBoard[this.cords[i][0]][this.cords[i][1]] = this.colourCode;
+
+                        } // loop through x-cords and add x direction
                     }
                 }
 
@@ -405,8 +490,18 @@ namespace GridLock
                     {
                         for (int i = 0; i < this.cords.Count; i++)
                         {
+                            Global.live2DGameBoard[this.cords[i][0]][this.cords[i][1]] = " ";
+
+                        }  // erase blocks on the live gameboard
+
+                        for (int i = 0; i < this.cords.Count; i++)
+                        {
                             this.cords[i][1] += xDirection;
-                        }
+
+                            Global.live2DGameBoard[this.cords[i][0]][this.cords[i][1]] = this.colourCode;
+
+                        } // loop through x-cords and add x direction
+
                     }
                 }
                 renderTick();
@@ -447,10 +542,10 @@ namespace GridLock
             {
 
                 PictureBox item = new PictureBox();
-                item.Width = Global.blockPixelLength * this.length + Global.pictureBoxGap;
-                item.Height = Global.blockPixelLength * this.height + Global.pictureBoxGap;
-                item.BackColor = Global.finishColor;
-                item.Location = new Point(this.x * Global.blockPixelLength - Global.pictureBoxGap, this.y * Global.blockPixelLength - Global.pictureBoxGap);
+                item.Width = Constants.blockPixelLength * this.length + Constants.pictureBoxGap;
+                item.Height = Constants.blockPixelLength * this.height + Constants.pictureBoxGap;
+                item.BackColor = Constants.finishColor;
+                item.Location = new Point(this.x * Constants.blockPixelLength - Constants.pictureBoxGap, this.y * Constants.blockPixelLength - Constants.pictureBoxGap);
                 Global.form1Ref.Controls.Add(item);
 
 
@@ -470,12 +565,36 @@ namespace GridLock
 
         }
 
+        private void comboBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            
+                if (e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9 && e.Modifiers != Keys.Shift)
+                {
+                    e.SuppressKeyPress = true;
+                }
+            
+        }
+
+
         private void button1_Click(object sender, EventArgs e)
         {
             loadLevel();
 
+            //loads a new level in loadLevel function
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var levelDesignerWindow = new levelDesigner();
+            levelDesignerWindow.Show();
+
+            // creates a new level designer window and shows it
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            levelSolver();
+        }
     }
 }
 
