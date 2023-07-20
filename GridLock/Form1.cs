@@ -334,6 +334,8 @@ namespace GridLock
                     }
                 }
             }
+
+            
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -351,19 +353,70 @@ namespace GridLock
             */
 
             
-            List<List<List<string>>> boards = new List<List<List<string>>>(); // the first section of this variable is the generation the board exists in
 
             // 1st step - create all board combinations from moving the green block to every possible square
-            //boards.Add(new List<<List<string>>());
+            Global.AIboards.Add(new List<List<string>>());
             for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
             {
-                boards[0].Add(new List<string>());
+                Global.AIboards[0].Add(new List<string>());
                 for (int x = 0; x < Constants.blocksAcross; x++)
                 {
-                    boards[0][y].Add(Global.live2DGameBoard[y][x]);
+                    Global.AIboards[0][y].Add(Global.live2DGameBoard[y][x]);
+                }
+            }
+
+            if(checkAIMoveValid(Global.AIboards[0], "g_", 0, -1))
+            {
+                moveAIgameBoardPieces(0, "g_", -1, -1);
+            }
+
+            // explore all possible positions for the green block to move
+
+        }
+
+        private bool checkAIMoveValid(List<List<string>> board, string colourCode, int directionVertical, int directionHorizontal)
+        {
+            // locate block on board
+            for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
+            {
+
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    if (board[y][x] == colourCode)
+                    {
+                        // check if position about to move to is in bounds
+                        if ((y+directionVertical < 0 || y+directionVertical > Constants.blocksDown-1) || (x + directionHorizontal < 0 || x + directionHorizontal > Constants.blocksAcross - 1))
+                        {
+                            return false;
+                            
+                        } else if (board[y + directionVertical][x + directionHorizontal] != " " && board[y + directionVertical][x + directionHorizontal] != colourCode)
+                        {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private void moveAIgameBoardPieces(int boardGeneration, string colourCode, int directionVertical, int directionHorizontal)
+        {
+            for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
+            {
+
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    if (Global.AIboards[boardGeneration][y][x] == colourCode)
+                    {
+                        Global.AIboards[boardGeneration][y][x] = " ";
+                        Global.AIboards[boardGeneration][y + directionVertical][x + directionHorizontal] = colourCode;
+                    }
                 }
             }
         }
+       
 
         class Global
         {
@@ -374,6 +427,8 @@ namespace GridLock
             public static List<Block> blocks = new List<Block>();
             public static FinishBlock finishblock = null;
             public static List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
+            public static List<List<List<string>>> AIboards = new List<List<List<string>>>(); // the first section of this variable is the generation the board exists in
+
 
             public static Block selectedBlock = null;
 
