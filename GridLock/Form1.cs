@@ -78,6 +78,8 @@ namespace GridLock
             Global.currentLevelFilePath = @"csvLevels/"+ selectedItem.ToString();
             ReadFile();
             InitiateMap();
+            Global.live2DGameBoard.Clear();
+            convertMapTo2DArray();
             Global.selectedBlock = null;
             // Get selected level from combobox and store it in the file path, then reset all variables and play all main file reading and level setup functions
         }
@@ -365,13 +367,99 @@ namespace GridLock
                 }
             }
 
-            if(checkAIMoveValid(Global.AIboards[0], "g_", 0, -1))
-            {
-                moveAIgameBoardPieces(0, "g_", -1, -1);
-            }
+            
+
+
 
             // explore all possible positions for the green block to move
 
+            List<List<int>> prevGreenCords = new List<List<int>>(); // y first then x
+
+
+            int ygreenCord = findAIgameBoardPieces(0, "g_").ElementAt(0).Key;
+            int xgreenCord = findAIgameBoardPieces(0, "g_").ElementAt(0).Value;
+
+            prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+            prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+
+
+            List<int> greenBlockMoves = new List<int>(); // a list of moves the green block has taken, 0 = up, 1 = right, 2 = down, 3 = left
+            List<int> identicalGameBoardIndexes = new List<int>(); // the board index matching with the greenblock moves
+             
+            greenBlockMoves.Add(5); // 5 is a dummy number
+            identicalGameBoardIndexes.Add(Global.AIboards.Count -1);
+
+
+            do // steps: keep going up until can't no more, then go right as far as possible, then down etc. when it can't go further in all directions, then it moves back a step and repeats the process
+            {
+                
+                if (checkAIMoveValid(Global.AIboards[identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1]], "g_", -1, 0) && !(checkIfIntListContainsList(prevGreenCords, new List<int>() { ygreenCord - 1, xgreenCord }))) // up
+                {
+                    moveAIgameBoardPieces(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1, "g_", -1, 0);
+                    ygreenCord += -1;
+                    prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+                    greenBlockMoves.Add(0);
+                    identicalGameBoardIndexes.Add(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1);
+                }
+                else if (checkAIMoveValid(Global.AIboards[identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1]], "g_", 0, 1) && !(checkIfIntListContainsList(prevGreenCords, new List<int>() { ygreenCord, xgreenCord + 1 }))) // right
+                {
+                    moveAIgameBoardPieces(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1, "g_", 0, 1);
+                    xgreenCord += 1;
+                    prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+                    greenBlockMoves.Add(1);
+                    identicalGameBoardIndexes.Add(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1);
+
+                    
+                }
+                else if (checkAIMoveValid(Global.AIboards[identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1]], "g_", 1, 0) && !(checkIfIntListContainsList(prevGreenCords, new List<int>() { ygreenCord + 1, xgreenCord }))) // down
+                {
+                    moveAIgameBoardPieces(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1, "g_", 1, 0);
+                    ygreenCord += 1;
+                    prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+                    greenBlockMoves.Add(2);
+                    identicalGameBoardIndexes.Add(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1);
+
+                }
+                else if (checkAIMoveValid(Global.AIboards[identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1]], "g_", 0, -1) && !(checkIfIntListContainsList(prevGreenCords, new List<int>() { ygreenCord, xgreenCord - 1 }))) // left
+                {
+                    moveAIgameBoardPieces(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1, "g_", 0, -1);
+                    xgreenCord += -1;
+                    prevGreenCords.Add(new List<int>() { ygreenCord, xgreenCord });
+                    greenBlockMoves.Add(3);
+                    identicalGameBoardIndexes.Add(identicalGameBoardIndexes[identicalGameBoardIndexes.Count - 1] + 1);
+
+                }
+                else
+                {
+                    var item = greenBlockMoves[greenBlockMoves.Count - 1];
+                    if (item == 0)
+                    {
+                        ygreenCord++;
+                    } 
+                    else if (item == 1)
+                    {
+                        xgreenCord--;
+                    }
+                    else if (item == 2)
+                    {
+                        ygreenCord--;
+                    }
+                    else if (item == 3)
+                    {
+                        xgreenCord++;
+                    }
+
+                    identicalGameBoardIndexes.RemoveAt(identicalGameBoardIndexes.Count - 1);
+                    greenBlockMoves.RemoveAt(greenBlockMoves.Count - 1);
+
+                    // reverses back a step
+                }
+
+            } while (greenBlockMoves.Count > 0);
+
+            // second step, get all the possible combinations of the other blocks
+
+            
         }
 
         private bool checkAIMoveValid(List<List<string>> board, string colourCode, int directionVertical, int directionHorizontal)
@@ -403,7 +491,22 @@ namespace GridLock
 
         private void moveAIgameBoardPieces(int boardGeneration, string colourCode, int directionVertical, int directionHorizontal)
         {
+            //  duplicate gameBoard
+            Global.AIboards.Insert(boardGeneration, new List<List<string>>());
             for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
+            {
+                Global.AIboards[boardGeneration].Add(new List<string>());
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    Global.AIboards[boardGeneration][y].Add(Global.AIboards[boardGeneration - 1][y][x]);
+                }
+            }
+            
+            List<List<int>> fillInBlocks = new List<List<int>>();
+
+            
+
+            for (int y = 0; y < Constants.blocksDown; y++) // clear positions first
             {
 
                 for (int x = 0; x < Constants.blocksAcross; x++)
@@ -411,12 +514,59 @@ namespace GridLock
                     if (Global.AIboards[boardGeneration][y][x] == colourCode)
                     {
                         Global.AIboards[boardGeneration][y][x] = " ";
-                        Global.AIboards[boardGeneration][y + directionVertical][x + directionHorizontal] = colourCode;
+                        fillInBlocks.Add(new List<int>() { y, x });
                     }
                 }
             }
+
+            foreach (var item in fillInBlocks)
+            {
+                Global.AIboards[boardGeneration][item[0] + directionVertical][item[1] + directionHorizontal] = colourCode;
+            }
+
+
         }
-       
+
+        private Dictionary<int, int> findAIgameBoardPieces(int boardGeneration, string colourCode)
+        {
+            for (int y = 0; y < Constants.blocksDown; y++) // copy across live gameboard onto boards
+            {
+
+                for (int x = 0; x < Constants.blocksAcross; x++)
+                {
+                    if (Global.AIboards[boardGeneration][y][x] == colourCode)
+                    {
+                        Dictionary<int, int> cords = new Dictionary<int, int>();
+                        cords.Add(y, x);
+                        return cords;
+                    }
+                }
+            }
+            return null;
+        }
+        private bool checkIfIntListContainsList(List<List<int>> listOfListInts, List<int> checkList  )
+        {
+            foreach (var list in listOfListInts)
+            {
+                if (list[0] == checkList[0] && list[1] == checkList[1])
+                {
+                    return true;
+                } 
+            }
+            return false;
+        }
+
+        private int numberOfUniqueBlocksExcludingGreen()
+        {
+            foreach (var item in Global.AIboards)
+            {
+
+            }
+            return null;
+        }
+
+
+
 
         class Global
         {
@@ -433,7 +583,7 @@ namespace GridLock
             public static Block selectedBlock = null;
 
             public static Form1 form1Ref = null;
-            public static string currentLevelFilePath = @"csvLevels/aiTester.csv";
+            public static string currentLevelFilePath = @"csvLevels/aiTester - With walls.csv";
         }
         public class Block
         {
