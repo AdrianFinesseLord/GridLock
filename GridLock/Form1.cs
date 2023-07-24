@@ -49,8 +49,17 @@ namespace GridLock
 
             initiateLevelsComboBox();
 
+            System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
+            timer1.Tick += new EventHandler(timer1_Tick);
+            timer1.Interval = 1000; // 1 second
+            timer1.Start(); 
+            // sets game timer interval with function timer1_tick 
+        }
 
-
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            Global.gameTimer++;
+            label3.Text = $"Time: {Global.gameTimer}s";
         }
 
         private void initiateLevelsComboBox()
@@ -82,6 +91,7 @@ namespace GridLock
             Global.live2DGameBoard.Clear();
             convertMapTo2DArray();
             Global.selectedBlock = null;
+            Global.gameTimer = -1; // restart at -1 so that timer starts ticking at 0s
             // Get selected level from combobox and store it in the file path, then reset all variables and play all main file reading and level setup functions
         }
 
@@ -385,7 +395,7 @@ namespace GridLock
             
 
 
-            int depth = 4;
+            int depth = 10;
             int i = 1;
             bool foundExit = false;
             int exitBoardIndex = 0;
@@ -395,7 +405,7 @@ namespace GridLock
                 Global.AIboards.Add(new List<List<List<string>>>());
 
                 int gameBoardIndex = 0;
-                foreach (var gameBoard in Global.AIboards[i-1]) 
+                while (gameBoardIndex < Global.AIboards[i-1].Count && !foundExit) 
                 {
                     int indexOfPreviousGenerationboard = gameBoardIndex;
                     // duplicate board as reference ...
@@ -841,6 +851,7 @@ namespace GridLock
             public static List<List<string>> solvedBoard = new List<List<string>>();
 
             public static Block selectedBlock = null;
+            public static double gameTimer = 0;
 
             public static Form1 form1Ref = null;
             public static string currentLevelFilePath = @"csvLevels/aiTester.csv";
@@ -971,6 +982,15 @@ namespace GridLock
                 }
                 renderTick();
 
+                // Check if game is won
+                if(this.colourCode == "g_")
+                {
+                    if (this.cords[0][0] == Global.finishblock.y && this.cords[0][1] == Global.finishblock.x)
+                    {
+                        MessageBox.Show($"You've won!!! \n \n Your time was {Global.gameTimer}s!");
+                    }
+                }
+                
             }
 
             public void drawBlock()
@@ -1112,6 +1132,11 @@ namespace GridLock
         private void button6_Click(object sender, EventArgs e)
         {
             displayAIboard(Global.AIboards[Convert.ToInt32(textBox1.Text)][Convert.ToInt32(textBox2.Text)]);
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
