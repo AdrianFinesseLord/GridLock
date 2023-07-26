@@ -20,6 +20,16 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace GridLock
 {
+    /* todo
+     add top menu bar
+    add menu pages
+    add more levels
+    clean up code
+    finish documentation
+
+
+
+     */
 
     public partial class Form1 : Form
     {
@@ -1129,7 +1139,7 @@ namespace GridLock
                 Thread.Sleep(100);
                 levelSolver();
                 button3.Text = "View Next Step";
-                label2.Text = "Board Solved, click to see next step.";
+                label2.Text = "Board Solved, click button again to see next step.";
             } else
             {
                 if (Global.AIsolveBoardIndexes.Count > 0 && !(Global.AIsolveStep > Global.AIsolveBoardIndexes.Count))

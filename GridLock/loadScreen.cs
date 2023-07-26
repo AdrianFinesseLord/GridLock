@@ -81,21 +81,51 @@ namespace GridLock
             // gets csv filenames and inserts them into combobox
         }
 
-        private void loadingBar()
-        {
-            
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             int selectedIndex = comboBox1.SelectedIndex;
             Object selectedItem = comboBox1.SelectedItem;
 
-            string currentLevelFilePath = @"csvLevels/" + selectedItem.ToString();
-            var Form1 = new Form1(currentLevelFilePath, this);
-            Form1.Show();
+            // prevents invalid level from being input
+            try
+            {
+                string currentLevelFilePath = @"csvLevels/" + selectedItem.ToString();
+                var Form1 = new Form1(currentLevelFilePath, this);
+                Form1.Show();
 
-            this.Hide();
+                this.Hide();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show("Error: Level not valid");
+            } finally
+            {
+                
+            }
+
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var settings = new Settings();
+            settings.Show();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var aboutBox = new AboutBox1();
+            aboutBox.Show();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var help = new Help();
+            help.Show();
         }
     }
 }

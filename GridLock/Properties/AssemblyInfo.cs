@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("GridLock")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Grid Lock is an exciting puzzle game inspired from the board game Rush Hour. The aim is to move the 2x2 green block to the exit and move the other blocks out of the way to clear the path.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Adrian Le Game Design")]
 [assembly: AssemblyProduct("GridLock")]
 [assembly: AssemblyCopyright("Copyright ©  2023")]
 [assembly: AssemblyTrademark("")]

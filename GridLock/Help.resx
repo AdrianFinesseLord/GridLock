@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
+  <data name="label2.Text" xml:space="preserve">
+    <value>Grid Lock is an exciting puzzle game inspired from the classic board game Rush Hour. The aim of the game is to move the 2x2 green block to the exit marked with a light green outline. The 2x2 green block can move in all directions, tall blocks can only move up and down and wide blocks can only move left and right. To move a block, click on it and use the arrow keys to move it around. If you ever get stuck on a level, you can click the button in the bottom left corner to use the Level Solver feature.</value>
+  </data>
 </root>
