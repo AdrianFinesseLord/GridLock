@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Schema;
 
 namespace GridLock
 {
@@ -29,7 +30,7 @@ namespace GridLock
             comboBox1.Hide();
             initiateLevelsComboBox();
             setTimer();
-            loadMusic();
+            loadMusic(SettingsVar.music);
 
         }
 
@@ -59,9 +60,10 @@ namespace GridLock
             
         }
 
-        private void loadMusic()
+        public void loadMusic(string music)
         {
-            SoundPlayer simpleSound = new SoundPlayer(@"sounds/music2.wav");
+            SoundPlayer simpleSound = new SoundPlayer(@"sounds/" + music);
+            simpleSound.Stop();
             simpleSound.Play();
         }
 

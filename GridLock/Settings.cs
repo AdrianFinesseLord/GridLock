@@ -44,16 +44,35 @@ namespace GridLock
                 SettingsVar.backgroundColour = Color.LightSkyBlue;
                 this.BackColor = Color.LightSkyBlue;
             }
-            if (comboBox1.Text == "Pink")
+            else if (comboBox1.Text == "Pink")
             {
                 SettingsVar.backgroundColour = Color.Pink;
                 this.BackColor = Color.Pink;
             }
-            if (comboBox1.Text == "LightGreen")
+            else if (comboBox1.Text == "LightGreen")
             {
                 SettingsVar.backgroundColour = Color.LightGreen;
                 this.BackColor = Color.LightGreen;
             }
+
+            // change music
+            if(comboBox2.Text != SettingsVar.music)
+            {
+                if (comboBox2.Text == "music1.wav")
+                {
+                    SettingsVar.music = comboBox2.Text;
+                }
+                else if (comboBox2.Text == "music2.wav")
+                {
+                    SettingsVar.music = comboBox2.Text;
+                }
+                else if (comboBox2.Text == "music3.wav")
+                {
+                    SettingsVar.music = comboBox2.Text;
+                }
+                loadScreen.loadMusic(SettingsVar.music);
+            }
+
 
             // close settings
             loadScreen.Show();
@@ -77,7 +96,7 @@ namespace GridLock
     internal class SettingsVar
     {
         public static Color backgroundColour = Color.Ivory;
-        public static string music = "music2.wav";
+        public static string music = "music1.wav";
 
 
     }
