@@ -21,8 +21,7 @@ namespace GridLock
             InitializeComponent();
         }
 
-        int xLoadBarWidth = 0;
-        int buttonPadding = 0;
+        int xLoadBarWidth = 0; // variable to measure how much the loadingbar has covered.
 
         private void loadScreen_Load(object sender, EventArgs e)
         {
@@ -33,6 +32,7 @@ namespace GridLock
             setTimer();
             loadMusic(SettingsVar.music);
 
+            // main constructor to execute main functions
         }
 
         private void setTimer()
@@ -60,6 +60,7 @@ namespace GridLock
                 
             }
             
+            // once the loading bar has finished loading, show the play button and level selector
         }
 
         public void loadMusic(string music)
@@ -67,6 +68,8 @@ namespace GridLock
             SoundPlayer simpleSound = new SoundPlayer(@"sounds/" + music);
             simpleSound.Stop();
             simpleSound.Play();
+
+            // plays the game music
         }
 
         private void initiateLevelsComboBox()
@@ -106,6 +109,8 @@ namespace GridLock
             {
                 
             }
+
+            // loads the level and opens the main game
 
         }
 

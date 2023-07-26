@@ -20,14 +20,6 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace GridLock
 {
-    /* todo
-    add more levels
-    clean up code
-    finish documentation
-
-
-
-     */
 
     public partial class Form1 : Form
     {
@@ -86,7 +78,7 @@ namespace GridLock
             Global.gameTimer++;
             label3.Text = $"Time: {Global.gameTimer.ToString()}s";
 
-            // updates timer text on screen
+            // updates timer text every second
         }
 
 
@@ -143,6 +135,7 @@ namespace GridLock
                 }
             }
 
+            // handles keydown inputs
         }
         void ReadFile()
         {
@@ -210,12 +203,8 @@ namespace GridLock
 
             }
             reader.Close();
-            for (int i = 0; i < Global.gameBoard.Count; i++)
-            {
-                for (int ii = 0; ii < Global.gameBoard[i].Count; ii++)
-                {
-                }
-            }
+        
+            // file reading algorithm. It reads character by character and adds it to a 2d list until it reaches the sentinel value of 'Z'.
         }
 
         private void convertMapTo2DArray()
@@ -252,7 +241,7 @@ namespace GridLock
                 }
             }
 
-
+            // converts the current state of the map into a 2d gameboard which can be used for the AI algorithm
         }
 
         private void InitiateMap()
@@ -300,6 +289,7 @@ namespace GridLock
                     }
                 }
             }
+            // using the 2d array from the file reading program, it converts this information into block class objects which can then be moved around and coordinates stored.
         }
 
         private void generateGridPictureBoxes()
@@ -321,6 +311,7 @@ namespace GridLock
                 }
             }
 
+            // this generates pictureboxes based on the number of grids there are.
         }
 
         private void NewPictureBox_Click(object sender, EventArgs e)
@@ -353,6 +344,8 @@ namespace GridLock
                 }
             }
             return null;
+
+            // finds the block given with specific coordinates.
         }
 
         static void clearBackgroundBlocks()
@@ -365,6 +358,8 @@ namespace GridLock
                     item.BackColor = Constants.gridBackColor;
                 }
             }
+
+            // clears all picturebox colours so that they can be drawn upon next tick
         }
 
 
@@ -391,7 +386,7 @@ namespace GridLock
                 }
             }
 
-            
+            // draws each block on the pictureboxes after wiping the screen, then converts the board into a live2d gameboard so that it can be read by the ai
         }
         private void Form1_Load(object sender, EventArgs e)
         {
