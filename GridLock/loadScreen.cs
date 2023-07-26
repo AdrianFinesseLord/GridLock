@@ -112,7 +112,7 @@ namespace GridLock
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var settings = new Settings();
+            var settings = new Settings(this);
             settings.Show();
         }
 

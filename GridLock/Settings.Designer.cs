@@ -70,7 +70,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(376, 55);
             this.label3.TabIndex = 3;
-            this.label3.Text = "Finish Colour:";
+            this.label3.Text = "Cursor Type:";
             // 
             // label4
             // 
@@ -85,39 +85,61 @@
             // 
             // comboBox1
             // 
+            this.comboBox1.DisplayMember = "Ivory";
             this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Items.AddRange(new object[] {
+            "Ivory",
+            "LightSkyBlue",
+            "Pink",
+            "LightGreen"});
             this.comboBox1.Location = new System.Drawing.Point(533, 158);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(121, 21);
             this.comboBox1.TabIndex = 5;
+            this.comboBox1.Text = "Ivory";
+            this.comboBox1.ValueMember = "Ivory";
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // comboBox2
             // 
             this.comboBox2.FormattingEnabled = true;
+            this.comboBox2.Items.AddRange(new object[] {
+            "Music1",
+            "Music2",
+            "Music3"});
             this.comboBox2.Location = new System.Drawing.Point(533, 244);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(121, 21);
             this.comboBox2.TabIndex = 6;
+            this.comboBox2.Text = "Music2";
             // 
             // comboBox3
             // 
             this.comboBox3.FormattingEnabled = true;
+            this.comboBox3.Items.AddRange(new object[] {
+            "Default",
+            "Hiya",
+            "Adrian Classic",
+            "X",
+            "Thumbs Up"});
             this.comboBox3.Location = new System.Drawing.Point(533, 340);
             this.comboBox3.Name = "comboBox3";
             this.comboBox3.Size = new System.Drawing.Size(121, 21);
             this.comboBox3.TabIndex = 7;
+            this.comboBox3.Text = "Default";
             // 
             // button1
             // 
             this.button1.BackColor = System.Drawing.Color.MediumTurquoise;
             this.button1.Font = new System.Drawing.Font("Myanmar Text", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.Black;
-            this.button1.Location = new System.Drawing.Point(315, 404);
+            this.button1.Location = new System.Drawing.Point(324, 391);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(157, 45);
+            this.button1.Size = new System.Drawing.Size(115, 57);
             this.button1.TabIndex = 8;
-            this.button1.Text = "Apply Changes";
+            this.button1.Text = "Apply Changes and Exit";
             this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Settings
             // 
@@ -136,6 +158,7 @@
             this.ForeColor = System.Drawing.Color.Lavender;
             this.Name = "Settings";
             this.Text = "Settings";
+            this.Load += new System.EventHandler(this.Settings_Load);
             this.ResumeLayout(false);
 
         }

@@ -21,8 +21,9 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 namespace GridLock
 {
     /* todo
-     add top menu bar
-    add menu pages
+    add changing mouse feature
+    add changing music feature
+    add feedback alert to ai
     add more levels
     clean up code
     finish documentation
@@ -68,7 +69,7 @@ namespace GridLock
         {
 
             // activates code once all controls have loaded
-
+            this.BackColor = SettingsVar.backgroundColour;
             this.KeyPreview = true;
 
             
@@ -1131,10 +1132,9 @@ namespace GridLock
             if(!Global.AIactivated)
             {
                 Global.AIactivated = true;
-                do
-                {
-                    label2.Text = "AI in progress...";
-                } while (label2.Text != "AI in progress...");
+                label2.Text = "AI in progress...";
+                MessageBox.Show("AI in progress...\nPress ok to continue");
+                
 
                 Thread.Sleep(100);
                 levelSolver();
@@ -1195,6 +1195,32 @@ namespace GridLock
         private void label2_Click_1(object sender, EventArgs e)
         {
 
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var aboutBox = new AboutBox1();
+            aboutBox.Show();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var help = new Help();
+            help.Show();
+        }
+
+        private void backToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Global.timer1.Stop();
+            Global.timer1.Dispose();
+            Global.loadScre.Show();
+            this.Hide();
         }
     }
 }
