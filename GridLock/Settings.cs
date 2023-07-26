@@ -78,6 +78,8 @@ namespace GridLock
             loadScreen.Show();
             loadScreen.BackColor = SettingsVar.backgroundColour;
             this.Close();
+
+            // applies variables and sets them to global settings class
         }
 
 
@@ -98,6 +100,6 @@ namespace GridLock
         public static Color backgroundColour = Color.Ivory;
         public static string music = "music1.wav";
 
-
+        // global variable for settings
     }
 }
