@@ -12,10 +12,13 @@ namespace GridLock
         public const int blocksAcross = 7;
         public const int blocksDown = 7;
         public const int blockPixelLength = 50;
+        public const int boardOffset = 50;
 
         public static Color gridBackColor = Color.LightGray;
         public static Color finishColor = Color.LimeGreen;
         public const int pictureBoxGap = 2;
+
+        public const int xloadBarEndWidth = 640;
 
     }
 }

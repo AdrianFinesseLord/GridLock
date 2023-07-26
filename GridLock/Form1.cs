@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,21 +24,35 @@ namespace GridLock
     public partial class Form1 : Form
     {
 
-        public Form1()
+        public Form1(string lvlName, loadScreen loadScre)
         {
+            Global.loadScre = loadScre;
+            Global.currentLevelFilePath = lvlName;
             Global.form1Ref = this;
             InitializeComponent();
             ReadFile();
             generateGridPictureBoxes();
             InitiateMap();
+            convertMapTo2DArray();
 
             Load += Form1_Load1;
             KeyDown += new KeyEventHandler(Form1_KeyDown);
 
-            convertMapTo2DArray();
-            //constructor to execute main functions
 
-        }
+            // reset all variables
+            Global.selectedBlock = null;
+            Global.gameTimer = -1; // restart at -1 so that timer starts ticking at 0s
+            Global.AIboards.Clear();
+            Global.AIsolveBoardIndexes.Clear();
+            Global.AIsolveStep = 0;
+            Global.solvedBoard.Clear();
+            Global.AIactivated = false;
+
+
+        //constructor to execute main functions
+    }
+
+        
 
         private void Form1_Load1(object sender, EventArgs e)
         {
@@ -45,61 +60,62 @@ namespace GridLock
             // activates code once all controls have loaded
 
             this.KeyPreview = true;
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
 
-            initiateLevelsComboBox();
+            
+            
+            Global.timer1 = new System.Windows.Forms.Timer();
+            Global.timer1.Tick += new EventHandler(timer1_Tick);
+            Global.timer1.Interval = 1000; // 1 second
+            Global.timer1.Start();
+            Global.timerStarted = true;
 
-            System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
-            timer1.Tick += new EventHandler(timer1_Tick);
-            timer1.Interval = 1000; // 1 second
-            timer1.Start(); 
+            
             // sets game timer interval with function timer1_tick 
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             Global.gameTimer++;
-            label3.Text = $"Time: {Global.gameTimer}s";
+            label3.Text = $"Time: {Global.gameTimer.ToString()}s";
+
+            // updates timer text on screen
         }
 
-        private void initiateLevelsComboBox()
-        {
-            DirectoryInfo d = new DirectoryInfo(@"csvLevels/");
 
-            FileInfo[] Files = d.GetFiles("*.csv"); //Getting csv filesnames
-            string str = "";
-
-            foreach (FileInfo file in Files)
-            {
-                comboBox1.Items.AddRange(new object[] { $"{file.Name}" });
-
-            }
-
-            comboBox1.SelectedIndex = 0;
-            // gets csv filenames and inserts them into combobox
-        }
 
         private void loadLevel()
         {
-            int selectedIndex = comboBox1.SelectedIndex;
-            Object selectedItem = comboBox1.SelectedItem;
+
 
             clearBackgroundBlocks();
-            Global.currentLevelFilePath = @"csvLevels/"+ selectedItem.ToString();
             ReadFile();
             InitiateMap();
             Global.live2DGameBoard.Clear();
             convertMapTo2DArray();
             Global.selectedBlock = null;
             Global.gameTimer = -1; // restart at -1 so that timer starts ticking at 0s
+            
             // Get selected level from combobox and store it in the file path, then reset all variables and play all main file reading and level setup functions
+        }
+
+        private void onWin()
+        {
+            MessageBox.Show($"You've Escaped. \n \n Your time was {Global.gameTimer}s");
+
+            Global.timer1.Stop();
+            Global.timer1.Dispose();
+            Global.loadScre.Show();
+            this.Hide();
+
+            
+            // loads main screen again
         }
 
 
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (Global.selectedBlock != null)
+            if (Global.selectedBlock != null && Global.AIsolveStep == 0)
             {
                 if (e.KeyCode == Keys.Right && Global.selectedBlock.movement != "V")
                 {
@@ -196,6 +212,7 @@ namespace GridLock
 
         private void convertMapTo2DArray()
         {
+            Global.live2DGameBoard.Clear();
             for (int y = 0; y < Constants.blocksDown; y++) // Create dummy map for list insertions
             {
                 Global.live2DGameBoard.Add(new List<string>());
@@ -290,7 +307,7 @@ namespace GridLock
                     item.Width = Constants.blockPixelLength - Constants.pictureBoxGap;
                     item.Height = Constants.blockPixelLength - Constants.pictureBoxGap;
                     item.BackColor = Constants.gridBackColor;
-                    item.Location = new Point(x * Constants.blockPixelLength, y * Constants.blockPixelLength);
+                    item.Location = new Point(x * Constants.blockPixelLength + Constants.boardOffset, y * Constants.blockPixelLength+ Constants.boardOffset);
                     item.Click += new EventHandler(NewPictureBox_Click);
                     this.Controls.Add(item);
                 }
@@ -300,13 +317,17 @@ namespace GridLock
 
         private void NewPictureBox_Click(object sender, EventArgs e)
         {
-            PictureBox pictureBox = (PictureBox)sender;
-            Global.selectedBlock = findBlockWithCords(pictureBox.Location.Y / Constants.blockPixelLength, pictureBox.Location.X / Constants.blockPixelLength);
-            if(Global.selectedBlock != null)
+            if (!(Global.AIsolveStep > 0)) // makes sure can't click on blocks in the middle of AI
             {
-                Global.form1Ref.pictureBox1.BackColor = Global.selectedBlock.colour;
+                PictureBox pictureBox = (PictureBox)sender;
+                Global.selectedBlock = findBlockWithCords((pictureBox.Location.Y - Constants.boardOffset) / Constants.blockPixelLength, (pictureBox.Location.X - Constants.boardOffset) / Constants.blockPixelLength);
+                if (Global.selectedBlock != null)
+                {
+                    Global.form1Ref.pictureBox1.BackColor = Global.selectedBlock.colour;
 
+                }
             }
+            
 
             //Gets picturebox cordinates and finds the corresponding block with the mouse cordinates, then change the selected block icon colour
         }
@@ -401,7 +422,8 @@ namespace GridLock
             int exitBoardIndex = 0;
             while (i < depth + 1 && !foundExit)
             {
-                
+                label2.Text = "AI in progress..."; // give user feedback about ai
+
                 Global.AIboards.Add(new List<List<List<string>>>());
 
                 int gameBoardIndex = 0;
@@ -422,10 +444,6 @@ namespace GridLock
 
 
                     // explore all possible positions for the green block to move
-                    if (gameBoardIndex == 2)
-                    {
-
-                    }
 
                     List<List<int>> prevGreenCords = new List<List<int>>(); // y first then x
 
@@ -519,8 +537,9 @@ namespace GridLock
 
                     } while (greenBlockMoves.Count > 0);
 
-                    // second step, get all the possible combinations of the other blocks
 
+
+                    // 2nd step -- get all the possible combinations of the other blocks
                     List<string> nonPlayerBlocks = uniqueBlocksExcludingGreen(i);
                     foreach (string colourCode in nonPlayerBlocks)
                     {
@@ -677,6 +696,8 @@ namespace GridLock
 
                     }
                 }
+
+                // loops through the selected block and searches for their colourcode on the gameboard, then checks if the spot they will move to is valid
             }
 
             return true;
@@ -720,6 +741,7 @@ namespace GridLock
 
             Global.AIboards[i][boardGeneration][Constants.blocksDown - 1].Add($"{previousGenerationIndex}");
 
+            // creates a new board with new positions
         }
 
         private Dictionary<int, int> findAIgameBoardPieces(int boardGeneration, string colourCode, int i)
@@ -738,6 +760,8 @@ namespace GridLock
                 }
             }
             return null;
+
+            // finds the coordinates of gameboard pieces from their colourcode
         }
         private bool checkIfIntListContainsList(List<List<int>> listOfListInts, List<int> checkList  )
         {
@@ -749,6 +773,8 @@ namespace GridLock
                 } 
             }
             return false;
+
+            // a function that check if there is an identical list within a list of lists
         }
 
         private List<string> uniqueBlocksExcludingGreen(int i)
@@ -765,6 +791,8 @@ namespace GridLock
                 }
             }
             return uniqueStrings;
+
+            // loops through a list of strings to return the colourcodes of blocks besides the green block
         }
 
         private int getOrientationColourCode(string colourCode)
@@ -777,7 +805,7 @@ namespace GridLock
                 return 1;
             }
             
-           
+           // finds the orientation of the colour of block based on their colourcode, their direction are preset
         }
 
         private void showAISteps(int i)
@@ -796,6 +824,7 @@ namespace GridLock
 
             Global.AIsolveBoardIndexes = exitBoardIndexes;
 
+            // goes back through board generations to find the moves it took to find exit.
         }
 
         private void displayAIboard(List<List<string>> board)
@@ -829,7 +858,7 @@ namespace GridLock
                 }
             }
 
-            //Console.WriteLine(board[Constants.blocksDown - 1][Constants.blocksAcross]);
+            //Loops through a given board to show their colours on the pictureboxes
         }
 
 
@@ -849,16 +878,22 @@ namespace GridLock
             public static List<int> AIsolveBoardIndexes = new List<int>();
             public static int AIsolveStep = 0;
             public static List<List<string>> solvedBoard = new List<List<string>>();
+            public static bool AIactivated = false;
 
             public static Block selectedBlock = null;
+            public static System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
             public static double gameTimer = 0;
+            public static bool timerStarted = false;
 
             public static Form1 form1Ref = null;
             public static string currentLevelFilePath = @"csvLevels/aiTester.csv";
+            public static loadScreen loadScre;
+
+            // a class named Global, which contains global variables such as the game timer to be accessed from different classes and functions.
         }
         public class Block
         {
-            //private Form1 Form1 = new Form1();
+            //this class is the standard template for a block. It is created on the read file function and contains coordinates, colour, length etc. along with its methods like moving around
 
             private int y;
             private int x;
@@ -897,6 +932,7 @@ namespace GridLock
                     }
                 }
 
+                // gets the specific coordinates from their given length and width.
             }
 
             public void Move(int yDirection, int xDirection)
@@ -987,10 +1023,11 @@ namespace GridLock
                 {
                     if (this.cords[0][0] == Global.finishblock.y && this.cords[0][1] == Global.finishblock.x)
                     {
-                        MessageBox.Show($"You've won!!! \n \n Your time was {Global.gameTimer}s!");
+                        Global.form1Ref.onWin();
                     }
                 }
                 
+                // loops through coordinates to check whether it is a valid move, then also checks if the game is won
             }
 
             public void drawBlock()
@@ -1001,7 +1038,9 @@ namespace GridLock
                     Global.pictureBoxes[this.cords[i][0]][this.cords[i][1]].BackColor = this.colour;
                     i++;
                 }
+                // loops through coordinates and changes the corresponding picturebox in the new moved coordinate.
             }
+
         }
 
         public class FinishBlock
@@ -1015,6 +1054,7 @@ namespace GridLock
 
             public FinishBlock(int y, int x, int height, int length)
             {
+                // standard template for the finish position class
                 this.height = height;
                 this.length = length;
                 this.y = y;
@@ -1030,10 +1070,10 @@ namespace GridLock
                 item.Width = Constants.blockPixelLength * this.length + Constants.pictureBoxGap;
                 item.Height = Constants.blockPixelLength * this.height + Constants.pictureBoxGap;
                 item.BackColor = Constants.finishColor;
-                item.Location = new Point(this.x * Constants.blockPixelLength - Constants.pictureBoxGap, this.y * Constants.blockPixelLength - Constants.pictureBoxGap);
+                item.Location = new Point(this.x * Constants.blockPixelLength - Constants.pictureBoxGap + Constants.boardOffset, this.y * Constants.blockPixelLength - Constants.pictureBoxGap + Constants.boardOffset);
                 Global.form1Ref.Controls.Add(item);
 
-
+                // creates a picturebox background which is black to show exit. 
 
             }
         }
@@ -1078,46 +1118,52 @@ namespace GridLock
 
         private void button3_Click(object sender, EventArgs e)
         {
-            levelSolver();
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            if (Global.AIsolveBoardIndexes.Count > 0 && !(Global.AIsolveStep > Global.AIsolveBoardIndexes.Count))
+            if(!Global.AIactivated)
             {
-                
-                if (Global.AIsolveStep == 0)
+                Global.AIactivated = true;
+                do
                 {
-                    displayAIboard(Global.AIboards[Global.AIsolveStep][Global.AIsolveBoardIndexes[Global.AIsolveStep]]);
-                    Global.AIsolveStep++;
+                    label2.Text = "AI in progress...";
+                } while (label2.Text != "AI in progress...");
+
+                Thread.Sleep(100);
+                levelSolver();
+                button3.Text = "View Next Step";
+                label2.Text = "Board Solved, click to see next step.";
+            } else
+            {
+                if (Global.AIsolveBoardIndexes.Count > 0 && !(Global.AIsolveStep > Global.AIsolveBoardIndexes.Count))
+                {
+
+                    if (Global.AIsolveStep == 0)
+                    {
+                        displayAIboard(Global.AIboards[Global.AIsolveStep][Global.AIsolveBoardIndexes[Global.AIsolveStep]]);
+                        Global.AIsolveStep++;
+
+                    }
+
+                    if (Global.AIsolveStep == Global.AIsolveBoardIndexes.Count)
+                    {
+                        displayAIboard(Global.solvedBoard);
+                        onWin(); // show win
+                    }
+                    else
+                    {
+                        displayAIboard(Global.AIboards[Global.AIsolveStep][Global.AIsolveBoardIndexes[Global.AIsolveStep]]);
+
+
+                        Global.AIsolveStep++;
+                    }
+
 
                 }
 
-                if (Global.AIsolveStep == Global.AIsolveBoardIndexes.Count)
-                {
-                    displayAIboard(Global.solvedBoard);
-                } else
-                {
-                    displayAIboard(Global.AIboards[Global.AIsolveStep][Global.AIsolveBoardIndexes[Global.AIsolveStep]]);
 
-
-                    Global.AIsolveStep++;
-                }
-                    
-
+                // goes to next AI step
             }
-
-
-            // goes to next AI step
         }
 
-        private void button5_Click(object sender, EventArgs e)
-        {
-            //displayAIboard(Global.AIboards[1][Convert.ToInt32(Global.AIboards[2][Global.AIsolveStep][Constants.blocksDown - 1][Constants.blocksAcross])]);
-            displayAIboard(Global.AIboards[2][Global.AIsolveStep]);
-            Global.AIsolveStep++;
-            label2.Text = $"board: {Global.AIsolveStep-1}";
-        }
+
 
         private void label2_Click(object sender, EventArgs e)
         {
@@ -1129,12 +1175,14 @@ namespace GridLock
 
         }
 
-        private void button6_Click(object sender, EventArgs e)
-        {
-            displayAIboard(Global.AIboards[Convert.ToInt32(textBox1.Text)][Convert.ToInt32(textBox2.Text)]);
-        }
+
 
         private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click_1(object sender, EventArgs e)
         {
 
         }
