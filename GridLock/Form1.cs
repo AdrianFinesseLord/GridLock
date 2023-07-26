@@ -21,9 +21,6 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 namespace GridLock
 {
     /* todo
-    add changing mouse feature
-    add changing music feature
-    add feedback alert to ai
     add more levels
     clean up code
     finish documentation
@@ -116,7 +113,7 @@ namespace GridLock
             Global.timer1.Stop();
             Global.timer1.Dispose();
             Global.loadScre.Show();
-            this.Hide();
+            this.Close();
 
             
             // loads main screen again
@@ -1220,7 +1217,7 @@ namespace GridLock
             Global.timer1.Stop();
             Global.timer1.Dispose();
             Global.loadScre.Show();
-            this.Hide();
+            this.Close();
         }
     }
 }

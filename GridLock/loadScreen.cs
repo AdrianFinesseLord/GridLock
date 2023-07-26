@@ -28,6 +28,7 @@ namespace GridLock
         {
             button1.Hide();
             comboBox1.Hide();
+            label2.Hide();
             initiateLevelsComboBox();
             setTimer();
             loadMusic(SettingsVar.music);
@@ -55,6 +56,7 @@ namespace GridLock
                 pictureBox3.Hide();
                 button1.Show();
                 comboBox1.Show();
+                label2.Show();
                 
             }
             
@@ -128,6 +130,11 @@ namespace GridLock
         {
             var help = new Help();
             help.Show();
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
